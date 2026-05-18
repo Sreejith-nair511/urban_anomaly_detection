@@ -81,16 +81,19 @@ def data_summary():
     )
 
     # PCA scatter sample (max 1500 points for perf)
-    sample = df.sample(min(1500, len(df)), random_state=42)
-    idx    = sample.index
+    # Use iloc-based positional indices so they align with the numpy X_pca array
+    n_sample = min(1500, len(df))
+    rng = np.random.default_rng(42)
+    pos_idx = rng.choice(len(df), size=n_sample, replace=False)
+    sample = df.iloc[pos_idx].reset_index(drop=True)
     pca_scatter = [
         {
-            "x":     round(float(state.X_pca[i, 0]), 4),
-            "y":     round(float(state.X_pca[i, 1]), 4),
-            "label": df.loc[i, "label_name"],
-            "zone":  df.loc[i, "location_id"],
+            "x":     round(float(state.X_pca[pos_idx[i], 0]), 4),
+            "y":     round(float(state.X_pca[pos_idx[i], 1]), 4),
+            "label": sample.loc[i, "label_name"],
+            "zone":  sample.loc[i, "location_id"],
         }
-        for i in idx
+        for i in range(n_sample)
     ]
 
     # AQI histogram buckets
